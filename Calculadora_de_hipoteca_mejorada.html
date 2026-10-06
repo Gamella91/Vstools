@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calculadora de hipoteca</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#1b1f24;--mu:#667085;--ac:#d9262c;--bl:#3b82f6;--bd:#e3e6ea;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14161a;--card:#1d2026;--tx:#eceff3;--mu:#98a2b3;--bd:#2c3139}}
+:root[data-theme="dark"]{--bg:#14161a;--card:#1d2026;--tx:#eceff3;--mu:#98a2b3;--bd:#2c3139}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:900px;margin:0 auto;padding:16px}h1{font-size:22px;margin:4px 0 12px}h2{font-size:16px;margin:0 0 10px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+label{display:block;font-size:12px;color:var(--mu)}
+input[type=number],select{width:100%;padding:8px;margin-top:3px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font-size:15px}
+.ck{display:flex;gap:6px;align-items:center;font-size:14px;color:var(--tx)}.ck input[type=number]{width:70px;margin:0}
+.k{font-size:12px;color:var(--mu)}.v{font-size:20px;font-weight:700}.big{color:var(--ac)}
+.tw{overflow-x:auto;max-height:420px;overflow-y:auto}table{border-collapse:collapse;width:100%;font-size:13px;white-space:nowrap}
+th,td{padding:5px 8px;text-align:right;border-bottom:1px solid var(--bd)}th:first-child,td:first-child{text-align:left}
+th{position:sticky;top:0;background:var(--card)}.n{font-size:12px;color:var(--mu)}
+.lg span{display:inline-block;width:10px;height:10px;border-radius:2px;margin:0 4px 0 10px}svg text{fill:var(--mu);font-size:10px}
+button{padding:9px 14px;border:0;border-radius:8px;background:var(--ac);color:#fff;font-size:15px;margin:4px 8px 0 0}button.s{background:var(--bd);color:var(--tx)}td input.r{width:78px;padding:5px;margin:0}</style></head><body><main>
+<h1>🏠 Calculadora de hipoteca</h1>
+<button id="goseg" type="button">📈 Ir al seguimiento real ↓</button>
+<div id="al" style="margin-top:12px"></div>
+
+<div class="card"><h2>Escenario de seguros</h2>
+<label>Elige uno (rellena los campos de abajo)<select id="sc"><option value="b">Base: vida +8 %, IPC 2,4 %</option><option value="p">Pesimista: vida +10 %, hogar +3,5 %</option><option value="w">Peor caso razonable: vida +12 %, hogar +4,5 %</option><option value="e">Extremo: vida +15 %, hogar 8 % los 3 primeros años y 4,5 % después</option><option value="x">Personalizado</option></select></label>
+<p class="n">Un IPC constante del 6 % durante 30 años sería extremo: en España la media de los últimos 10 años es ~2,4 % y el pico fue 8,4 % solo en 2022. Por eso el peor caso usa un 4,5 % anual para el hogar (IPC 3,5 % + 1 punto extra de la aseguradora).</p></div>
+
+<div class="card"><h2>Hipoteca</h2><div class="g">
+<label>Capital (€)<input id="cap" type="number" step="any" value="221200"></label>
+<label>Plazo (años)<input id="yrs" type="number" step="any" value="30"></label>
+<label>TIN sin bonificar (%)<input id="tin" type="number" step="0.01" value="3.1"></label></div>
+<div class="g" style="margin-top:10px">
+<label class="ck"><input type="checkbox" id="b1" checked> Nómina −<input id="d1" type="number" step="0.05" value="0.5"></label>
+<label class="ck"><input type="checkbox" id="b2" checked> Seguro vida −<input id="d2" type="number" step="0.05" value="0.3"></label>
+<label class="ck"><input type="checkbox" id="b3" checked> Seguro hogar −<input id="d3" type="number" step="0.05" value="0.2"></label></div>
+<p class="n">Supuesto: 3,1 % es el tipo sin bonificar y se resta cada bonificación. Si ya incluye las bonificaciones, pon 4,1.</p></div>
+
+<div class="card"><h2>Seguro de vida (€/año, para el 50 % del capital)</h2><div class="g">
+<label>Persona A: año 1<input id="a1" type="number" step="any" value="162"></label>
+<label>Año 2<input id="a2" type="number" step="any" value="176"></label>
+<label>Año 3<input id="a3" type="number" step="any" value="185"></label>
+<label>% asegurado A<input id="pa" type="number" step="any" value="50"></label>
+<label>Persona B: año 1<input id="c1" type="number" step="any" value="148"></label>
+<label>Año 2<input id="c2" type="number" step="any" value="158"></label>
+<label>Año 3<input id="c3" type="number" step="any" value="169"></label>
+<label>% asegurado B<input id="pb" type="number" step="any" value="50"></label>
+<label>Subida anual por edad desde año 4 (%)<input id="vg" type="number" step="0.5" value="8"></label>
+<label class="ck" style="grid-column:1/-1"><input type="checkbox" id="lk" checked> La prima baja al amortizar (proporcional al capital pendiente)</label></div>
+<p class="n">Años 1-3: primas que te han dado (si cambias el % asegurado se escalan respecto al 50 %). Desde el año 4: prima del año 3 × capital pendiente relativo × subida por edad. El 8 % es una estimación a partir de tus propias subidas y de tarifas de mortalidad; no es la tarifa real del Santander.</p></div>
+
+<div class="card"><h2>Seguro de hogar</h2><div class="g">
+<label>Prima año 1 (€)<input id="h0" type="number" step="any" value="400"></label>
+<label>Escenario de IPC<select id="ips"><option value="2.4">Media 2016-2025: 2,4 %</option><option value="2">Previsión BdE 2026-27: ~2 %</option><option value="3.5">Alto: 3,5 %</option><option value="x">Otro</option></select></label>
+<label>Subida anual (%)<input id="ipc" type="number" step="0.1" value="2.4"></label>
+<label>Extra sobre IPC (pp)<input id="ex" type="number" step="0.1" value="0"></label>
+<label>Años iniciales de subida alta<input id="yh" type="number" step="any" value="0"></label>
+<label>Subida en esos años (%)<input id="hi" type="number" step="0.5" value="8"></label></div>
+<p class="n">IPC medio anual en España 2016-2025: −0,2 · 2,0 · 1,7 · 0,7 · −0,3 · 3,1 · 8,4 · 3,5 · 2,8 · 2,7 → media ≈ 2,4 %. Previsiones: Banco de España 2,1 % (2026) y 1,9 % (2027); Funcas ≈ 2,4 %. Las aseguradoras suelen subir primas por encima del IPC; usa «Extra» para reflejarlo.</p></div>
+
+<div class="card"><h2>Resultado a <span id="ny"></span> años</h2><div class="g" id="res"></div></div>
+<div class="card"><h2>¿Compensan las bonificaciones?</h2><div id="cmp"></div></div>
+
+<div class="card"><h2>Amortización: intereses y capital</h2>
+<p class="n">El selector cambia también las tres tablas de abajo a meses (el seguimiento real sigue siendo anual).</p>
+<label style="max-width:180px">Ver por<select id="vw"><option value="y">Años</option><option value="m">Meses</option></select></label>
+<svg id="ch" viewBox="0 0 600 230" width="100%" style="margin-top:8px"></svg>
+<div class="lg n"><span style="background:var(--ac)"></span>Intereses<span style="background:var(--bl)"></span>Capital amortizado</div></div>
+
+<div class="card"><h2>Hipoteca por <span class="pv">año</span></h2><div class="tw"><table id="t1"></table></div></div>
+<div class="card"><h2>Seguro de vida por <span class="pv">año</span></h2><div class="tw"><table id="t2"></table></div></div>
+<div class="card"><h2>Seguro de hogar por <span class="pv">año</span></h2><div class="tw"><table id="t3"></table></div></div>
+
+<div class="card" id="seg"><h2>📈 Seguimiento real</h2>
+<p class="n" id="st"></p>
+<p class="n">Pulsa «Añadir año» y apunta lo que pagas de verdad (vida = suma de los dos). Se compara con la previsión del escenario elegido arriba y te avisa en la parte superior si te sales.</p>
+<div class="tw"><table id="tt"></table></div>
+<button id="add" type="button">+ Añadir año</button><button class="s" id="del" type="button">Quitar último año</button>
+<div class="g" style="margin-top:12px"><label>Avisar si me desvío más de (%)<input id="thr" type="number" step="any" value="15"></label>
+<label>Mejor presupuesto externo hogar (€/año)<input id="ext" type="number" step="any" placeholder="p. ej. 200"></label></div>
+<button class="s" id="top" type="button">↑ Volver arriba</button></div>
+
+<script>
+let VA=[],VB=[],PV=[],PH=[],BL=0,C=0,ACT={},DB=null;
+const $=id=>document.getElementById(id),num=id=>parseFloat($(id).value)||0;
+const eur=x=>x.toLocaleString('es-ES',{style:'currency',currency:'EUR',minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:'always'});
+const eur2=x=>x.toLocaleString('es-ES',{style:'currency',currency:'EUR',minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:'always'});
+function loan(P,rate,n){const i=rate/1200,c=i?P*i/(1-Math.pow(1+i,-n)):P/n;let b=P;const mi=[],mp=[],bl=[];
+ for(let m=0;m<n;m++){const t=b*i;mi.push(t);mp.push(c-t);b-=c-t;bl.push(Math.max(b,0))}return{c,mi,mp,bl,tot:c*n}}
+const sum=(a,s,e)=>a.slice(s,e).reduce((x,y)=>x+y,0);
+function life(y,L,P){const a=[num('a1'),num('a2'),num('a3')],c=[num('c1'),num('c2'),num('c3')],g=1+num('vg')/100,fa=num('pa')/50,fb=num('pb')/50;
+ if(y<3)return[a[y]*fa,c[y]*fb];let f=Math.pow(g,y-2);
+ if($('lk').checked){const s=k=>k==0?P:L.bl[12*k-1];f*=s(y)/s(2)}return[a[2]*f*fa,c[2]*f*fb]}
+function chart(L,n){const W=600,H=230,l=40,r=6,t=8,b=22,m=$('vw').value=='m';let I,C;
+ if(m){I=L.mi;C=L.mp}else{I=[];C=[];for(let y=0;y<n/12;y++){I.push(sum(L.mi,12*y,12*y+12));C.push(sum(L.mp,12*y,12*y+12))}}
+ const N=I.length,mx=Math.max(...I.map((v,k)=>v+C[k])),bw=(W-l-r)/N;let s='';
+ for(let k=0;k<4;k++){const v=mx*k/3,y=H-b-(H-b-t)*k/3;s+=`<line x1="${l}" x2="${W-r}" y1="${y}" y2="${y}" stroke="currentColor" opacity=".12"/><text x="${l-4}" y="${y+3}" text-anchor="end">${Math.round(v).toLocaleString('es-ES')}</text>`}
+ const sc=(H-b-t)/mx;
+ for(let k=0;k<N;k++){const x=l+k*bw,hi=I[k]*sc,hc=C[k]*sc;
+  s+=`<rect x="${x}" y="${H-b-hc}" width="${Math.max(bw-(m?0:1),.4)}" height="${hc}" fill="var(--bl)"/><rect x="${x}" y="${H-b-hc-hi}" width="${Math.max(bw-(m?0:1),.4)}" height="${hi}" fill="var(--ac)"/>`}
+ const st=m?60:5;for(let k=0;k<=N;k+=st)s+=`<text x="${l+k*bw}" y="${H-6}" text-anchor="middle">${m?'m'+k:'a'+k}</text>`;
+ $('ch').innerHTML=s}
+function calc(){
+ const n=Math.round(num('yrs')*12),P=num('cap'),Y=Math.ceil(n/12);$('ny').textContent=num('yrs');
+ const dis=($('b1').checked?num('d1'):0)+($('b2').checked?num('d2'):0)+($('b3').checked?num('d3'):0);
+ const rate=Math.max(num('tin')-dis,0),L=loan(P,rate,n),B=loan(P,num('tin'),n);
+ PV=[];PH=[];VA=[];VB=[];let hh=0,r1='',r2='',r3='',aH=0,aV=0,aC=0,sv=0,sh=0,gi=1+(num('ipc')+num('ex'))/100;
+ for(let y=0;y<Y;y++){const e=Math.min(12*y+12,n),it=sum(L.mi,12*y,e),pr=sum(L.mp,12*y,e),cu=L.c*(e-12*y);aC+=cu;
+  r1+=`<tr><td>${y+1}</td><td>${eur(cu)}</td><td>${eur(it)}</td><td>${eur(pr)}</td><td>${eur(L.bl[e-1])}</td><td>${eur(aC)}</td></tr>`;
+  const [la,lb]=life(y,L,P),lt=la+lb;aV+=lt;sv+=lt;PV.push(lt);VA.push(la);VB.push(lb);
+  r2+=`<tr><td>${y+1}</td><td>${eur(y==0?P:L.bl[12*y-1])}</td><td>${eur(la)}</td><td>${eur(lb)}</td><td>${eur(lt)}</td><td>${eur(aV)}</td></tr>`;
+  if(y==0)hh=num('h0');else hh*=y<=num('yh')?1+num('hi')/100:gi;const h=hh;aH+=h;sh+=h;PH.push(h);
+  r3+=`<tr><td>${y+1}</td><td>${eur(h)}</td><td>${eur(h/12)}</td><td>${eur(aH)}</td></tr>`}
+const M=$('vw').value=='m';
+ if(M){r1=r2=r3='';let a1=0,a2=0,a3=0;for(let m=0;m<n;m++){const y=Math.floor(m/12),a=VA[y]/12,b=VB[y]/12,h=PH[y]/12;a1+=L.c;a2+=a+b;a3+=h;
+  r1+=`<tr><td>${m+1}</td><td>${eur2(L.c)}</td><td>${eur2(L.mi[m])}</td><td>${eur2(L.mp[m])}</td><td>${eur(L.bl[m])}</td><td>${eur(a1)}</td></tr>`;
+  r2+=`<tr><td>${m+1}</td><td>${eur(m==0?P:L.bl[m-1])}</td><td>${eur2(a)}</td><td>${eur2(b)}</td><td>${eur2(a+b)}</td><td>${eur(a2)}</td></tr>`;
+  r3+=`<tr><td>${m+1}</td><td>${eur(PH[y])}</td><td>${eur2(h)}</td><td>${eur(a3)}</td></tr>`}}
+ document.querySelectorAll('.pv').forEach(e=>e.textContent=M?'mes':'año');
+ $('t1').innerHTML='<tr><th>Año</th><th>Cuotas</th><th>Intereses</th><th>Capital</th><th>Pendiente</th><th>Total pagado</th></tr>'+r1;
+ $('t2').innerHTML='<tr><th>Año</th><th>Capital pend. (inicio)</th><th>Persona A</th><th>Persona B</th><th>Total año</th><th>Total acumulado</th></tr>'+r2;
+ $('t3').innerHTML='<tr><th>Año</th><th>Prima</th><th>€/mes</th><th>Total acumulado</th></tr>'+r3;
+ const tot=L.tot+sv+sh,kv=(k,v,b)=>`<div><div class="k">${k}</div><div class="v ${b?'big':''}">${v}</div></div>`;
+ $('res').innerHTML=kv('Tipo final',rate.toFixed(2)+' %')+kv('Cuota mensual',eur2(L.c))+kv('Hipoteca total',eur(L.tot))+kv('de ellos intereses',eur(L.tot-P))+kv('Seguros de vida',eur(sv))+kv('Seguro hogar',eur(sh))+kv('TOTAL con seguros',eur(tot),1)+kv('Media mensual',eur2(tot/n));
+ const kv2=$('b2').checked?num('d2'):0,kh2=$('b3').checked?num('d3'):0,S=loan(P,Math.max(num('tin')-($('b1').checked?num('d1'):0),0),n),
+ ah=S.tot-L.tot,ahn=B.tot-S.tot,ahv=loan(P,rate+kv2,n).tot-L.tot,ahh=loan(P,rate+kh2,n).tot-L.tot,
+ cv=$('b2').checked?sv:0,ch2=$('b3').checked?sh:0,net=ah-cv-ch2,bal=(a,c)=>a>=c?'compensa: ahorras '+eur(a-c):'no compensa: pierdes '+eur(c-a);
+ $('cmp').innerHTML=`<p>Sin bonificaciones (${num('tin').toFixed(2)} %): cuota ${eur2(B.c)}, intereses ${eur(B.tot-P)}.</p><p>Ahorro total de intereses con todas las bonificaciones: <b>${eur(B.tot-L.tot)}</b>. De ellos, la nómina aporta <b>${eur(ahn)}</b> (no depende de ningún seguro) y los seguros <b>${eur(ah)}</b> (${eur2(S.c-L.c)}/mes).</p><p>Seguro de vida: ahorra ${eur(ahv)} en intereses y cuesta ${eur(cv)} → ${bal(ahv,cv)}.<br>Seguro de hogar: ahorra ${eur(ahh)} en intereses y cuesta ${eur(ch2)} → ${bal(ahh,ch2)}.</p><p>Balance de los seguros: <b class="big">${net>=0?'ahorras '+eur(net):'pagas '+eur(-net)+' de más'}</b> frente a contratar solo la bonificación de nómina. Es aproximado: los seguros dan cobertura que quizá contratarías igualmente.</p>`;
+['t1','t2','t3'].forEach(id=>$(id).rows[0].cells[0].textContent=M?'Mes':'Año');
+BL=(loan(P,rate+($('b3').checked?num('d3'):0),n).c-L.c)*12;C=L.c;chart(L,n);track()}
+const SC={b:[8,2.4,0,0],p:[10,3,0.5,0],w:[12,3.5,1,0],e:[15,3.5,1,3]};
+$('sc').addEventListener('change',()=>{const v=SC[$('sc').value];if(v){$('vg').value=v[0];$('ipc').value=v[1];$('ex').value=v[2];$('yh').value=v[3];$('hi').value=8;$('lk').checked=true;$('ips').value=[...$('ips').options].some(o=>o.value==v[1])?v[1]:'x'}calc()});
+['vg','ipc','ex','yh','hi','lk'].forEach(id=>$(id).addEventListener('input',()=>{const k=Object.keys(SC).find(k=>SC[k][0]==num('vg')&&SC[k][1]==num('ipc')&&SC[k][2]==num('ex')&&SC[k][3]==num('yh'));$('sc').value=k&&$('lk').checked?k:'x'}));
+$('ips').addEventListener('change',()=>{if($('ips').value!='x')$('ipc').value=$('ips').value;calc()});
+$('ipc').addEventListener('input',()=>{$('ips').value=[...$('ips').options].some(o=>o.value==$('ipc').value)?$('ipc').value:'x'});
+document.querySelectorAll('input,#vw').forEach(e=>e.addEventListener('input',calc));$('vw').addEventListener('change',calc);
+
+
+const f0=x=>x.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:'always'});
+const yrs=()=>Object.keys(ACT).filter(k=>/^y\d+$/.test(k)).map(k=>+k.slice(1)).sort((a,b)=>a-b);
+function loc(){try{localStorage.setItem('real',JSON.stringify(ACT))}catch(e){}}
+function save(id,o){ACT[id]=o;loc();if(DB){try{DB.collection('real').doc(id).set(o).catch(()=>{})}catch(e){}}}
+function rm(id){delete ACT[id];loc();if(DB){try{DB.collection('real').doc(id).delete().catch(()=>{})}catch(e){}}}
+function upd(y,k,v){const o=Object.assign({},ACT['y'+y]);if(v===''||isNaN(+v))delete o[k];else o[k]=+v;save('y'+y,o);track()}
+function track(){if(!PV.length)return;const ys=yrs(),thr=num('thr'),al=[],fm=d=>d==null?'':(d>0?'+':'')+d.toFixed(1)+' %',cl=d=>d==null?'':`style="color:${d>thr?'var(--ac)':d<-thr?'#16a34a':'inherit'}"`;let last=0;
+ let r='<tr><th>Año</th><th>Vida prev.</th><th>Vida real</th><th>Desv.</th><th>Hogar prev.</th><th>Hogar real</th><th>Desv.</th><th>Cuota prev./mes</th><th>Cuota real/mes</th></tr>';
+ for(const y of ys){if(y>PV.length)continue;const a=ACT['y'+y]||{},dv=a.v?(a.v/PV[y-1]-1)*100:null,dh=a.h?(a.h/PH[y-1]-1)*100:null;
+  r+=`<tr><td>${y}</td><td>${f0(PV[y-1])}</td><td><input class="r" type="number" step="0.01" value="${a.v??''}" onchange="upd(${y},'v',this.value)"></td><td ${cl(dv)}>${fm(dv)}</td><td>${f0(PH[y-1])}</td><td><input class="r" type="number" step="0.01" value="${a.h??''}" onchange="upd(${y},'h',this.value)"></td><td ${cl(dh)}>${fm(dh)}</td><td>${C.toFixed(2)}</td><td><input class="r" type="number" step="0.01" value="${a.c??''}" onchange="upd(${y},'c',this.value)"></td></tr>`;
+  if(dv!=null&&dv>thr)al.push(`⚠️ Año ${y}: seguro de vida ${f0(a.v)} € frente a ${f0(PV[y-1])} € previstos (${fm(dv)}). Pide el desglose al Santander y prueba un escenario más duro.`);
+  if(dh!=null&&dh>thr)al.push(`⚠️ Año ${y}: seguro de hogar ${f0(a.h)} € frente a ${f0(PH[y-1])} € previstos (${fm(dh)}).`);
+  if(a.c&&a.c>C*1.01)al.push(`⚠️ Año ${y}: la cuota real (${a.c.toFixed(2)} €) supera la prevista (${C.toFixed(2)} €). ¿Han quitado alguna bonificación?`);
+  if(a.h)last=a.h}
+ if(!ys.length)r+='<tr><td colspan="9" class="n" style="text-align:left">Aún no hay años. Pulsa «Añadir año».</td></tr>';
+ $('tt').innerHTML=r;const ext=num('ext');
+ if(ext){const b=last||PH[0];al.push(b-ext>BL?`💡 Compensa buscar fuera el seguro de hogar: pagas ${f0(b)} € y tienes oferta de ${f0(ext)} €; la diferencia (${f0(b-ext)} €/año) supera lo que cuesta perder la bonificación (~${f0(BL)} €/año).`:`ℹ️ Con ${f0(ext)} € de fuera aún no compensa salir: diferencia ${f0(b-ext)} €/año frente a ~${f0(BL)} €/año de bonificación.`)}
+ $('al').innerHTML=al.length?`<div class="card" style="border-color:var(--ac)">${al.map(x=>`<p style="margin:4px 0">${x}</p>`).join('')}</div>`:''}
+$('goseg').onclick=()=>$('seg').scrollIntoView({behavior:'smooth'});$('top').onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
+$('add').onclick=()=>{const ys=yrs();save('y'+((ys.length?ys[ys.length-1]:0)+1),{n:1});track()};
+$('del').onclick=()=>{const ys=yrs();if(ys.length&&confirm('¿Quitar el año '+ys[ys.length-1]+'?')){rm('y'+ys[ys.length-1]);track()}};
+$('ext').addEventListener('change',()=>save('ext',{h:num('ext')}));
+try{ACT=JSON.parse(localStorage.getItem('real')||'{}');if(ACT.ext&&ACT.ext.h)$('ext').value=ACT.ext.h}catch(e){ACT={}}
+$('st').textContent='💾 Los datos se guardan en este navegador/dispositivo.';track();
+(async()=>{try{const c=window.claude&&await window.claude.use('db');if(!c)return;DB=c;let first=true;
+ c.collection('real').onSnapshot(sn=>{if(first&&sn.empty){Object.keys(ACT).forEach(k=>{try{c.collection('real').doc(k).set(ACT[k]).catch(()=>{})}catch(e){}})}
+  else{ACT={};sn.docs.forEach(d=>ACT[d.id]=d.data());loc();if(ACT.ext&&ACT.ext.h&&!$('ext').value)$('ext').value=ACT.ext.h}
+  first=false;$('st').textContent='💾 Guardado en tu cuenta y también en este dispositivo.';track()},()=>{})}catch(e){}})();
+calc();
+</script></main></body></html>
